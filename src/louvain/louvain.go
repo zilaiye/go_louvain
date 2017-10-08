@@ -1,7 +1,5 @@
 package louvain
 
-import "sort"
-
 type Community struct {
 	inWeight    WeightType
 	totalWeight WeightType
@@ -75,17 +73,15 @@ func (this *Louvain) merge() bool {
 		self := WeightType(this.current.graph.GetSelfWeight(nodeId))
 		totalWeight := self
 
+		neighWeightsKeys := make([]int, 0, len(neighWeights))
 		for _, edge := range this.current.graph.GetIncidentEdges(nodeId) {
-			neighWeights[this.current.inCommunities[edge.destId]] += edge.weight
+			destCommId := this.current.inCommunities[edge.destId]
+			if _, exists := neighWeights[destCommId]; !exists {
+				neighWeightsKeys = append(neighWeightsKeys, destCommId)
+			}
+			neighWeights[destCommId] += edge.weight
 			totalWeight += edge.weight
 		}
-
-		// for fixed order iteration.
-		neighWeightsKeys := make([]int, 0, len(neighWeights))
-		for key, _ := range neighWeights {
-			neighWeightsKeys = append(neighWeightsKeys, key)
-		}
-		sort.Ints(neighWeightsKeys)
 
 		prevCommunity := this.current.inCommunities[nodeId]
 		prevNeighWeight := WeightType(neighWeights[prevCommunity])
