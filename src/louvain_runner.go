@@ -24,5 +24,4 @@ func main() {
 	for nodeId, commId := range louvain.GetBestPertition() {
 		fmt.Printf("nodeId: %s commId: %d \n", graphReader.GetNodeLabel(nodeId), commId)
 	}
-
 }

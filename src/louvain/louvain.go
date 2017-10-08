@@ -1,5 +1,7 @@
 package louvain
 
+import "sort"
+
 type Community struct {
 	inWeight    WeightType
 	totalWeight WeightType
@@ -78,6 +80,13 @@ func (this *Louvain) merge() bool {
 			totalWeight += edge.weight
 		}
 
+		// for fixed order iteration.
+		neighWeightsKeys := make([]int, 0, len(neighWeights))
+		for key, _ := range neighWeights {
+			neighWeightsKeys = append(neighWeightsKeys, key)
+		}
+		sort.Ints(neighWeightsKeys)
+
 		prevCommunity := this.current.inCommunities[nodeId]
 		prevNeighWeight := WeightType(neighWeights[prevCommunity])
 		this.remove(nodeId, prevCommunity, 2*prevNeighWeight+self, totalWeight)
@@ -85,8 +94,8 @@ func (this *Louvain) merge() bool {
 		maxInc := WeightType(0.0)
 		bestCommunity := prevCommunity
 		bestNeighWeight := WeightType(prevNeighWeight)
-		for community, weight := range neighWeights {
-
+		for _, community := range neighWeightsKeys {
+			weight := neighWeights[community]
 			inc := WeightType(weight - this.current.communities[community].totalWeight*totalWeight/this.m2)
 			if inc > maxInc {
 				maxInc = inc
