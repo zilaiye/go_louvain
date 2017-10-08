@@ -1,13 +1,5 @@
 package louvain
 
-import (
-	"bufio"
-	"log"
-	"os"
-	"strconv"
-	"strings"
-)
-
 type WeightType float32
 
 type Edge struct {
@@ -44,28 +36,5 @@ func (this *Graph) GetSelfWeight(nodeId int) WeightType {
 }
 
 func (this *Graph) GetNodeSize() int {
-	return len(this.incidences)
-}
-
-func (this *Graph) Load(filename string) {
-	this.incidences = make(Edges, 35)
-	this.selfs = make([]WeightType, 35)
-	fp, err := os.Open(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer fp.Close()
-
-	scanner := bufio.NewScanner(fp)
-	totalWeight := WeightType(0.0)
-
-	for scanner.Scan() {
-		line := strings.Split(scanner.Text(), ",")
-		source, _ := strconv.Atoi(line[0])
-		dest, _ := strconv.Atoi(line[1])
-		weight := WeightType(1.0)
-		this.AddUndirectedEdge(source, dest, weight)
-		totalWeight += weight
-	}
-
+	return len(this.selfs)
 }

@@ -6,8 +6,10 @@ import (
 
 func TestModularity(t *testing.T) {
 
-	louvain := Louvain{}
-	louvain.Load("resource/karate.txt")
+	graphReader := NewGraphReader()
+	graph := graphReader.Load("resource/karate.txt")
+
+	louvain := NewLouvain(graph)
 	louvain.Compute()
 
 	actual := louvain.BestModularity()

@@ -1,5 +1,7 @@
 package louvain
 
+import "sort"
+
 type Community struct {
 	inWeight    WeightType
 	totalWeight WeightType
@@ -17,24 +19,25 @@ type Louvain struct {
 	m2      WeightType
 }
 
-func (this *Louvain) Load(filename string) {
-	this.level = make([]Level, 1)
-	this.current = &this.level[0]
-	this.current.graph = Graph{}
-	this.current.graph.Load(filename)
-	this.current.communities = make([]Community, this.current.graph.GetNodeSize())
-	this.current.inCommunities = make([]int, this.current.graph.GetNodeSize())
-	this.m2 = WeightType(0.0)
-	for nodeId := 0; nodeId < this.current.graph.GetNodeSize(); nodeId++ {
-		this.current.inCommunities[nodeId] = nodeId
+func NewLouvain(graph Graph) *Louvain {
+	louvain := Louvain{}
+	louvain.level = make([]Level, 1)
+	louvain.current = &louvain.level[0]
+	louvain.current.graph = graph
+	louvain.current.communities = make([]Community, louvain.current.graph.GetNodeSize())
+	louvain.current.inCommunities = make([]int, louvain.current.graph.GetNodeSize())
+	louvain.m2 = WeightType(0.0)
+	for nodeId := 0; nodeId < louvain.current.graph.GetNodeSize(); nodeId++ {
+		louvain.current.inCommunities[nodeId] = nodeId
 		neigh := WeightType(0.0)
-		for _, edge := range this.current.graph.GetIncidentEdges(nodeId) {
+		for _, edge := range louvain.current.graph.GetIncidentEdges(nodeId) {
 			neigh += edge.weight
 		}
-		self := WeightType(this.current.graph.GetSelfWeight(nodeId))
-		this.current.communities[nodeId] = Community{self, neigh + self}
-		this.m2 += (neigh + 2*self)
+		self := WeightType(louvain.current.graph.GetSelfWeight(nodeId))
+		louvain.current.communities[nodeId] = Community{self, neigh + self}
+		louvain.m2 += (neigh + 2*self)
 	}
+	return &louvain
 }
 
 func (this *Louvain) BestModularity() WeightType {
@@ -77,6 +80,13 @@ func (this *Louvain) merge() bool {
 			totalWeight += edge.weight
 		}
 
+		// for fixed order iteration.
+		neighWeightsKeys := make([]int, 0, len(neighWeights))
+		for key, _ := range neighWeights {
+			neighWeightsKeys = append(neighWeightsKeys, key)
+		}
+		sort.Ints(neighWeightsKeys)
+
 		prevCommunity := this.current.inCommunities[nodeId]
 		prevNeighWeight := WeightType(neighWeights[prevCommunity])
 		this.remove(nodeId, prevCommunity, 2*prevNeighWeight+self, totalWeight)
@@ -84,8 +94,8 @@ func (this *Louvain) merge() bool {
 		maxInc := WeightType(0.0)
 		bestCommunity := prevCommunity
 		bestNeighWeight := WeightType(prevNeighWeight)
-		for community, weight := range neighWeights {
-
+		for _, community := range neighWeightsKeys {
+			weight := neighWeights[community]
 			inc := WeightType(weight - this.current.communities[community].totalWeight*totalWeight/this.m2)
 			if inc > maxInc {
 				maxInc = inc
