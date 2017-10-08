@@ -46,3 +46,8 @@ An example is shown below.
 ```
 
 The input file is Interpreted as an undirected graph.
+# Test
+
+```
+go test ./src/louvain
+```
