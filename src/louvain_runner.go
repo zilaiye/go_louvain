@@ -14,14 +14,15 @@ func main() {
 		return
 	}
 
-	louvain := louvain.Louvain{}
-	louvain.Load(os.Args[1])
+	graphReader := louvain.NewGraphReader()
+	graph := graphReader.Load(os.Args[1])
+	louvain := louvain.NewLouvain(graph)
 	louvain.Compute()
 
 	fmt.Printf("Modularity Q: %f\n", louvain.BestModularity())
 	fmt.Printf("Nodes to communities.\n")
 	for nodeId, commId := range louvain.GetBestPertition() {
-		fmt.Printf("nodeId: %d commId: %d \n", nodeId, commId)
+		fmt.Printf("nodeId: %s commId: %d \n", graphReader.GetNodeLabel(nodeId), commId)
 	}
 
 }

@@ -44,7 +44,7 @@ func (this *Graph) GetSelfWeight(nodeId int) WeightType {
 }
 
 func (this *Graph) GetNodeSize() int {
-	return len(this.incidences)
+	return len(this.selfs)
 }
 
 func (this *Graph) Load(filename string) {
@@ -57,7 +57,6 @@ func (this *Graph) Load(filename string) {
 	defer fp.Close()
 
 	scanner := bufio.NewScanner(fp)
-	totalWeight := WeightType(0.0)
 
 	for scanner.Scan() {
 		line := strings.Split(scanner.Text(), ",")
@@ -65,7 +64,6 @@ func (this *Graph) Load(filename string) {
 		dest, _ := strconv.Atoi(line[1])
 		weight := WeightType(1.0)
 		this.AddUndirectedEdge(source, dest, weight)
-		totalWeight += weight
 	}
 
 }
