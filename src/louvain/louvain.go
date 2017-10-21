@@ -210,3 +210,13 @@ func (this *Louvain) GetPertition(level int) []int {
 func (this *Louvain) GetBestPertition() []int {
 	return this.GetPertition(len(this.level))
 }
+
+func (this *Louvain) GetNodeToCommunityInEachLevel(nodeId int) []int {
+	nodeToCommunityInEachLevel := make([]int, len(this.level))
+	commId := nodeId
+	for l := 0; l != len(this.level); l++ {
+		commId = this.level[l].inCommunities[commId]
+		nodeToCommunityInEachLevel[l] = commId
+	}
+	return nodeToCommunityInEachLevel
+}
