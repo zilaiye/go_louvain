@@ -5,7 +5,7 @@ This package implements the louvain algorithm in go.
 # usage
 
 ```bash
-./louvain_runner [input file]
+./louvain_runner -i [input file]
 ```
 
 An example is shown below.
