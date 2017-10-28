@@ -143,45 +143,45 @@ func (this *Louvain) rebuild() {
 		}
 	}
 
-	communities2 := make([]Community, num)
+	newCommunities := make([]Community, num)
 	for nodeId := 0; nodeId < len(this.current.communities); nodeId++ {
 		if comm, exists := renumbers[nodeId]; exists {
-			communities2[comm] = this.current.communities[nodeId]
+			newCommunities[comm] = this.current.communities[nodeId]
 		}
 	}
 
-	communityNodes := make([][]int, len(communities2))
+	communityNodes := make([][]int, len(newCommunities))
 	for nodeId := 0; nodeId < this.current.graph.GetNodeSize(); nodeId++ {
 		communityNodes[this.current.inCommunities[nodeId]] = append(communityNodes[this.current.inCommunities[nodeId]], nodeId)
 	}
 
-	graph2 := Graph{make(Edges, len(communities2)), make([]WeightType, len(communities2))}
+	newGraph := Graph{make(Edges, len(newCommunities)), make([]WeightType, len(newCommunities))}
 
-	for commId := 0; commId < graph2.GetNodeSize(); commId++ {
-		edges2 := map[int]WeightType{}
+	for commId := 0; commId < newGraph.GetNodeSize(); commId++ {
+		newEdges := map[int]WeightType{}
 		selfWeight := WeightType(0.0)
 		for _, nodeId := range communityNodes[commId] {
 			edges := this.current.graph.GetIncidentEdges(nodeId)
 			for _, edge := range edges {
-				edges2[this.current.inCommunities[edge.destId]] += edge.weight
+				newEdges[this.current.inCommunities[edge.destId]] += edge.weight
 			}
 			selfWeight += this.current.graph.GetSelfWeight(nodeId)
 		}
 
-		graph2.AddSelfEdge(commId, edges2[commId]+selfWeight)
-		for nodeId, weight := range edges2 {
+		newGraph.AddSelfEdge(commId, newEdges[commId]+selfWeight)
+		for nodeId, weight := range newEdges {
 			if nodeId != commId {
-				graph2.AddDirectedEdge(commId, nodeId, weight)
+				newGraph.AddDirectedEdge(commId, nodeId, weight)
 			}
 		}
 	}
 
-	inCommunities2 := make([]int, graph2.GetNodeSize())
-	for nodeId := 0; nodeId < len(inCommunities2); nodeId++ {
-		inCommunities2[nodeId] = nodeId
+	newInCommunities := make([]int, newGraph.GetNodeSize())
+	for nodeId := 0; nodeId < len(newInCommunities); nodeId++ {
+		newInCommunities[nodeId] = nodeId
 	}
 
-	this.level = append(this.level, Level{graph2, communities2, inCommunities2})
+	this.level = append(this.level, Level{newGraph, newCommunities, newInCommunities})
 	this.current = &this.level[len(this.level)-1]
 }
 
