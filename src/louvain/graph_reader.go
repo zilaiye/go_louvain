@@ -28,8 +28,24 @@ func (this *GraphReader) GetNodeIndex(nodeLabel string) int {
 	return this.nodeLabelToIndex[nodeLabel]
 }
 
+func (this *GraphReader) GetNodeIndices(nodeLabels []string) []int {
+	ret := make([]int, 0, len(nodeLabels))
+	for _, l := range nodeLabels {
+		ret = append(ret, this.nodeLabelToIndex[l])
+	}
+	return ret
+}
+
 func (this *GraphReader) GetNodeLabel(nodeIndex int) string {
 	return this.nodeIndexToLabel[nodeIndex]
+}
+
+func (this *GraphReader) GetNodeLabels(nodeIndices []int) []string {
+	ret := make([]string, 0, len(nodeIndices))
+	for _, i := range nodeIndices {
+		ret = append(ret, this.nodeIndexToLabel[i])
+	}
+	return ret
 }
 
 func (this *GraphReader) GetNodeSize() int {

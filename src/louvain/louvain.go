@@ -1,5 +1,8 @@
 package louvain
 
+import "github.com/emirpasic/gods/maps/treemap"
+import "github.com/emirpasic/gods/maps"
+
 type Community struct {
 	inWeight    WeightType
 	totalWeight WeightType
@@ -54,14 +57,49 @@ func (this *Level) modularity(m2 WeightType) WeightType {
 	return q
 }
 
-func (this *Louvain) merge() bool {
-	improved := false
+func (this *Louvain) GetNeighbers(changedNodes []int, deleteRange int) []int {
+	neighberDistances := treemap.NewWithIntComparator()
 
-	q := make([]int, this.current.graph.GetNodeSize())
-	mark := make([]bool, this.current.graph.GetNodeSize())
-	for nodeId := 0; nodeId < this.current.graph.GetNodeSize(); nodeId++ {
+	for _, nodeId := range changedNodes {
+		neighberDistances.Put(nodeId, 0)
+	}
+	if deleteRange > 0 {
+		for _, nodeId := range changedNodes {
+			this.setNeighberDistances(neighberDistances, nodeId, 1, deleteRange)
+		}
+	}
+	neighbers := make([]int, 0, neighberDistances.Size())
+	for _, k := range neighberDistances.Keys() {
+		neighbers = append(neighbers, k.(int))
+	}
+	return neighbers
+}
+
+func (this *Louvain) setNeighberDistances(neighberDistances maps.Map, nodeId int, rangeFromOrigin int, deleteRange int) {
+	for _, edge := range this.level[0].graph.GetIncidentEdges(nodeId) {
+		if r, exists := neighberDistances.Get(edge.destId); exists {
+			if r.(int) < rangeFromOrigin {
+				continue
+			}
+		}
+		neighberDistances.Put(edge.destId, rangeFromOrigin)
+		if rangeFromOrigin < deleteRange {
+			this.setNeighberDistances(neighberDistances, edge.destId, rangeFromOrigin+1, deleteRange)
+		}
+	}
+}
+
+func buildCalcNodes(size int) []int {
+	q := make([]int, size)
+	for nodeId := 0; nodeId < size; nodeId++ {
 		q[nodeId] = nodeId
 	}
+	return q
+}
+
+func (this *Louvain) merge(q []int) bool {
+	improved := false
+	mark := make([]bool, this.current.graph.GetNodeSize())
 
 	for len(q) != 0 {
 		nodeId := q[0]
@@ -190,8 +228,20 @@ func (this *Louvain) GetLevel(n int) *Level {
 }
 
 func (this *Louvain) Compute() {
-	for this.merge() {
+	this.current = &this.level[0]
+	for this.merge(buildCalcNodes(this.current.graph.GetNodeSize())) {
 		this.rebuild()
+	}
+}
+
+func (this *Louvain) LocalChange(changedNodes []int, deleteRange int) {
+	this.current = &this.level[0]
+	q := this.GetNeighbers(changedNodes, deleteRange)
+	if this.merge(q) {
+		this.rebuild()
+		for this.merge(buildCalcNodes(this.current.graph.GetNodeSize())) {
+			this.rebuild()
+		}
 	}
 }
 
