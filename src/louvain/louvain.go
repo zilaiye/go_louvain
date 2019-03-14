@@ -132,7 +132,7 @@ func (this *Louvain) rebuild() {
 
 	renumbers := map[int]int{}
 	num := 0
-
+f
 	for nodeId, inCommunity := range this.current.inCommunities {
 		if commId, exists := renumbers[inCommunity]; !exists {
 			renumbers[inCommunity] = num
